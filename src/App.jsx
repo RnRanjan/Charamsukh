@@ -55,7 +55,7 @@ function App() {
   return (
     <div className={darkMode ? 'dark' : ''}>
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-200 transition-colors">
-        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <Router basename="/Charamsukh" future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <Navbar user={user} setUser={setUser} darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
           <Routes>
             <Route path="/" element={<Landing />} />
