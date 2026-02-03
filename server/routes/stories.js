@@ -127,82 +127,78 @@ router.get('/:id', optionalAuth, async (req, res) => {
 // @route   POST /api/stories
 // @desc    Create a new story
 // @access  Private (Any authenticated user)
-router.post('/', auth, (req, res, next) => {
-  storyUpload(req, res, (err) => {
-    if (err) {
-      console.error('Multer error:', err);
-      return res.status(400).json({ success: false, message: 'File upload error: ' + err.message });
-    }
-    next();
-  });
-}, [
-  body('title').trim().isLength({ min: 5, max: 200 }).withMessage('Title must be between 5 and 200 characters'),
-  body('content').isLength({ min: 100 }).withMessage('Story must be at least 100 characters long'),
-  body('category').notEmpty().withMessage('Category is required')
-], async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ success: false, errors: errors.array() });
-    }
-
-    const { title, content, category, tags = [], generateAudio = false, description = '' } = req.body;
-    
-    // Validate required fields
-    if (!title || !content || !category) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Missing required fields: title, content, category' 
-      });
-    }
-
-    if (!req.user || !req.user.userId) {
-      return res.status(401).json({ 
-        success: false, 
-        message: 'User not authenticated' 
-      });
-    }
-    
-    const coverImage = req.files && req.files.coverImage ? `/uploads/${req.files.coverImage[0].filename}` : '';
-    const audioFile = req.files && req.files.audioFile ? `/uploads/${req.files.audioFile[0].filename}` : '';
-
-    const story = new Story({
-      title,
-      description,
-      content,
-      category,
-      tags: typeof tags === 'string' ? tags.split(',').map(t => t.trim()) : tags,
-      author: req.user.userId,
-      coverImage,
-      status: 'published',
-      audio: {
-        hasAudio: !!audioFile,
-        audioUrl: audioFile,
-        audioStatus: audioFile ? 'generated' : (generateAudio === 'true' || generateAudio === true ? 'generating' : 'none')
+router.post('/', 
+  auth, 
+  storyUpload,
+  [
+    body('title').trim().isLength({ min: 5, max: 200 }).withMessage('Title must be between 5 and 200 characters'),
+    body('content').isLength({ min: 100 }).withMessage('Story must be at least 100 characters long'),
+    body('category').notEmpty().withMessage('Category is required')
+  ], 
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, errors: errors.array() });
       }
-    });
 
-    await story.save();
+      const { title, content, category, tags = [], generateAudio = false, description = '' } = req.body;
+      
+      // Validate required fields
+      if (!title || !content || !category) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Missing required fields: title, content, category' 
+        });
+      }
 
-    res.status(201).json({
-      success: true,
-      message: 'Story created successfully',
-      story
-    });
-  } catch (error) {
-    console.error('Create story error:', error);
-    console.error('Error details:', {
-      message: error.message,
-      name: error.name,
-      stack: error.stack
-    });
-    res.status(500).json({ 
-      success: false, 
-      message: error.message || 'Server error during story creation',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+      if (!req.user || !req.user.userId) {
+        return res.status(401).json({ 
+          success: false, 
+          message: 'User not authenticated' 
+        });
+      }
+      
+      const coverImage = req.files && req.files.coverImage ? `/uploads/${req.files.coverImage[0].filename}` : '';
+      const audioFile = req.files && req.files.audioFile ? `/uploads/${req.files.audioFile[0].filename}` : '';
+
+      const story = new Story({
+        title,
+        description,
+        content,
+        category,
+        tags: typeof tags === 'string' ? tags.split(',').map(t => t.trim()) : tags,
+        author: req.user.userId,
+        coverImage,
+        status: 'published',
+        audio: {
+          hasAudio: !!audioFile,
+          audioUrl: audioFile,
+          audioStatus: audioFile ? 'generated' : (generateAudio === 'true' || generateAudio === true ? 'generating' : 'none')
+        }
+      });
+
+      await story.save();
+
+      res.status(201).json({
+        success: true,
+        message: 'Story created successfully',
+        story
+      });
+    } catch (error) {
+      console.error('Create story error:', error);
+      console.error('Error details:', {
+        message: error.message,
+        name: error.name
+      });
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || 'Server error during story creation',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
   }
-});
+);
 
 // @route   POST /api/stories/:id/like
 // @desc    Like/Unlike a story
