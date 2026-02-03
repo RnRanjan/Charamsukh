@@ -406,7 +406,7 @@ router.delete('/:id', auth, async (req, res) => {
     if (!story) return res.status(404).json({ success: false, message: 'Story not found' });
 
     // Check ownership
-    if (story.author.toString() !== req.user.userId && req.userRole !== 'admin') {
+    if (story.author.toString() !== req.user.userId && req.user.role !== 'admin') {
       return res.status(403).json({ success: false, message: 'Not authorized' });
     }
 

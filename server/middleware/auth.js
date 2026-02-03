@@ -25,6 +25,7 @@ export const auth = async (req, res, next) => {
     }
 
     req.user = decoded;
+    req.userRole = user.role; // Also set the role for consistency
     next();
   } catch (error) {
     console.error('Auth middleware error:', error);
