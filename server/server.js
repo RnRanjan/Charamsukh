@@ -23,9 +23,28 @@ const __dirname = path.dirname(__filename);
 
 // Create uploads directory if it doesn't exist
 const uploadsDir = path.join(__dirname, 'uploads');
+console.log('Uploads directory path:', uploadsDir);
+console.log('Uploads directory exists:', fs.existsSync(uploadsDir));
+
 if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-  console.log('✅ Created uploads directory');
+  try {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+    console.log('✅ Created uploads directory');
+  } catch (err) {
+    console.error('❌ Failed to create uploads directory:', err.message);
+  }
+} else {
+  console.log('✅ Uploads directory already exists');
+}
+
+// Verify we can write to uploads directory
+try {
+  const testFile = path.join(uploadsDir, 'test.txt');
+  fs.writeFileSync(testFile, 'test');
+  fs.unlinkSync(testFile);
+  console.log('✅ Uploads directory is writable');
+} catch (err) {
+  console.error('❌ Uploads directory is not writable:', err.message);
 }
 
 const app = express();
@@ -62,21 +81,41 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files from the uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// MongoDB connection
+// MongoDB connection with retry logic
 const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/charamsukh';
 console.log('Attempting to connect to MongoDB...');
 console.log('MONGODB_URI exists:', !!process.env.MONGODB_URI);
 console.log('NODE_ENV:', process.env.NODE_ENV);
 
-mongoose.connect(mongoURI)
-.then(() => {
-  console.log('✅ MongoDB connected successfully');
-  console.log('Database:', mongoose.connection.name);
-})
-.catch(err => {
-  console.error('❌ MongoDB connection error:', err.message);
-  console.error('Full error:', err);
-  console.warn('⚠️ Server starting without database connection - will retry automatically');
+const connectDB = async () => {
+  try {
+    await mongoose.connect(mongoURI, {
+      serverSelectionTimeoutMS: 5000, // Timeout after 5 seconds
+      socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
+    });
+    console.log('✅ MongoDB connected successfully');
+    console.log('Database:', mongoose.connection.name);
+  } catch (err) {
+    console.error('❌ MongoDB connection error:', err.message);
+    console.error('Full error:', err);
+    // Retry connection every 5 seconds
+    setTimeout(connectDB, 5000);
+  }
+};
+
+connectDB();
+
+// Handle connection events
+mongoose.connection.on('error', (err) => {
+  console.error('MongoDB connection error:', err);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.warn('MongoDB disconnected');
+});
+
+mongoose.connection.on('reconnected', () => {
+  console.log('MongoDB reconnected');
 });
 
 // Routes

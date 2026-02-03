@@ -38,15 +38,24 @@ const upload = multer({
 // Error-safe wrapper for multer
 const handleFileUpload = (req, res, next) => {
   console.log('🔄 Processing file upload...');
+  console.log('Request headers:', req.headers);
+  console.log('Content type:', req.headers['content-type']);
+  
   upload(req, res, (err) => {
     if (err) {
       console.warn('⚠️ File upload warning:', err.message);
+      console.warn('Error details:', err);
       // Don't fail on upload errors, just skip files
       req.files = req.files || {};
       console.log('Files available after error:', Object.keys(req.files || {}));
     } else {
       console.log('✅ File upload completed successfully');
-      console.log('Files received:', Object.keys(req.files || {}));
+      console.log('Files received:', req.files ? Object.keys(req.files) : 'none');
+      if (req.files) {
+        Object.keys(req.files).forEach(field => {
+          console.log(`File field ${field}:`, req.files[field][0].originalname);
+        });
+      }
     }
     next();
   });
@@ -156,6 +165,9 @@ router.post('/',
       console.log('User:', req.user);
       console.log('Body keys:', Object.keys(req.body));
       console.log('Files:', req.files ? Object.keys(req.files) : 'none');
+      console.log('Body content length:', req.body.content?.length);
+      console.log('Body title:', req.body.title);
+      console.log('Body category:', req.body.category);
       
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -176,6 +188,17 @@ router.post('/',
         });
       }
 
+      // Validate content length
+      if (content.length < 100) {
+        console.log('❌ Content too short:', content.length);
+        return res.status(400).json({
+          success: false,
+          message: `Content must be at least 100 characters long. Current length: ${content.length}`
+        });
+      }
+
+      console.log('✅ All validations passed');
+
       if (!req.user || !req.user.userId) {
         console.log('❌ User not authenticated');
         return res.status(401).json({ 
@@ -184,8 +207,19 @@ router.post('/',
         });
       }
       
-      const coverImage = req.files && req.files.coverImage ? `/uploads/${req.files.coverImage[0].filename}` : '';
-      const audioFile = req.files && req.files.audioFile ? `/uploads/${req.files.audioFile[0].filename}` : '';
+      // Handle file paths properly
+      let coverImage = '';
+      let audioFile = '';
+      
+      if (req.files && req.files.coverImage) {
+        coverImage = `/uploads/${req.files.coverImage[0].filename}`;
+        console.log('📁 Cover image path:', coverImage);
+      }
+      
+      if (req.files && req.files.audioFile) {
+        audioFile = `/uploads/${req.files.audioFile[0].filename}`;
+        console.log('📁 Audio file path:', audioFile);
+      }
 
       console.log('📂 Files to attach:', { coverImage, audioFile });
 
@@ -206,8 +240,16 @@ router.post('/',
       });
 
       console.log('💾 Saving story to database...');
-      await story.save();
-      console.log('✅ Story saved successfully:', story._id);
+      console.log('Story object to save:', {
+        title: story.title,
+        author: story.author,
+        category: story.category,
+        contentLength: story.content.length,
+        hasCoverImage: !!story.coverImage
+      });
+      
+      const savedStory = await story.save();
+      console.log('✅ Story saved successfully:', savedStory._id);
 
       res.status(201).json({
         success: true,
@@ -217,24 +259,39 @@ router.post('/',
     } catch (error) {
       console.error('❌ Create story error:', error.message);
       console.error('Error type:', error.name);
-      console.error('Error details:', error);
+      console.error('Error stack:', error.stack);
+      if (error.errors) {
+        console.error('Validation errors:', error.errors);
+      }
       
       // Return more specific error messages
       if (error.name === 'ValidationError') {
         const messages = Object.values(error.errors).map(e => e.message);
         return res.status(400).json({ 
           success: false, 
-          message: 'Validation error: ' + messages.join(', ')
+          message: 'Validation error: ' + messages.join(', '),
+          error: error.message
+        });
+      }
+      
+      if (error.name === 'MongoError' || error.name === 'BulkWriteError') {
+        return res.status(500).json({ 
+          success: false, 
+          message: 'Database error: ' + error.message,
+          error: error.message
         });
       }
       
       res.status(500).json({ 
         success: false, 
         message: error.message || 'Server error during story creation',
-        error: error.message
+        error: {
+          message: error.message,
+          name: error.name,
+          ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
+        }
       });
     }
-  }
   }
 );
 
