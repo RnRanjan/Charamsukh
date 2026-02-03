@@ -82,9 +82,21 @@ const Navbar = ({ user, setUser, darkMode, toggleDarkMode }) => {
               </Link>
               {user ? (
                 <>
-                  <Link to="/dashboard" className="hover:text-primary-400 transition-colors text-slate-300">
-                    <i className="fas fa-user mr-2"></i>Dashboard
-                  </Link>
+                  {user.role === 'admin' && (
+                    <Link to="/admin" className="hover:text-primary-400 transition-colors text-slate-300">
+                      <i className="fas fa-cog mr-2"></i>Admin
+                    </Link>
+                  )}
+                  {user.role === 'author' && (
+                    <Link to="/author" className="hover:text-primary-400 transition-colors text-slate-300">
+                      <i className="fas fa-pen mr-2"></i>Author Dashboard
+                    </Link>
+                  )}
+                  {user.role === 'user' && (
+                    <Link to="/dashboard" className="hover:text-primary-400 transition-colors text-slate-300">
+                      <i className="fas fa-user mr-2"></i>Dashboard
+                    </Link>
+                  )}
                   <button onClick={handleLogout} className="text-left hover:text-red-600 transition-colors">
                     <i className="fas fa-sign-out-alt mr-2"></i>Logout
                   </button>

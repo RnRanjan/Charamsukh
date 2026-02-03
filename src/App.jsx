@@ -9,7 +9,7 @@ import Stories from './pages/Stories';
 import StoryDetail from './pages/StoryDetail';
 import UserDashboard from './pages/UserDashboard';
 import AuthorDashboard from './pages/AuthorDashboard';
-import AdminDashboard from './pages/AdminDashboard';
+import AdminPanel from './pages/AdminPanel';
 import CreateStory from './pages/CreateStory';
 import './App.css';
 
@@ -69,7 +69,7 @@ function App() {
             <Route path="/story/:id" element={<StoryDetail user={user} />} />
             <Route path="/dashboard" element={<UserDashboard user={user} />} />
             <Route path="/author" element={<AuthorDashboard user={user} />} />
-            <Route path="/admin" element={<AdminDashboard user={user} />} />
+            <Route path="/admin/*" element={<AdminPanel user={user} />} />
             <Route path="/create-story" element={<CreateStory user={user} />} />
           </Routes>
         </Router>
