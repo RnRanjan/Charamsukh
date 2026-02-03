@@ -33,9 +33,11 @@ app.use(cors({
     process.env.CLIENT_URL || 'http://localhost:5173', 
     'http://localhost:5175', 
     'http://localhost:5174',
-    'https://rnranjan.github.io/Charamsukh/'
+    'https://rnranjan.github.io'
   ],
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Rate limiting
