@@ -8,7 +8,7 @@ import { auth, authorize, optionalAuth } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Multer configuration for cover image uploads
+// Multer configuration for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'uploads/');
@@ -20,7 +20,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 50 * 1024 * 1024 }, // Increase to 50MB for audio
+  limits: { fileSize: 50 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const filetypes = /jpeg|jpg|png|webp|mp3|wav|ogg|m4a/;
     const mimetype = filetypes.test(file.mimetype);
@@ -30,12 +30,22 @@ const upload = multer({
     }
     cb(new Error('Only images and audio files are allowed'));
   }
-});
-
-const storyUpload = upload.fields([
+}).fields([
   { name: 'coverImage', maxCount: 1 },
   { name: 'audioFile', maxCount: 1 }
 ]);
+
+// Error-safe wrapper for multer
+const handleFileUpload = (req, res, next) => {
+  upload(req, res, (err) => {
+    if (err) {
+      console.warn('File upload warning:', err.message);
+      // Don't fail on upload errors, just skip files
+      req.files = {};
+    }
+    next();
+  });
+};
 
 // @route   GET /api/stories
 // @desc    Get all published stories with filters
@@ -129,7 +139,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
 // @access  Private (Any authenticated user)
 router.post('/', 
   auth, 
-  storyUpload,
+  handleFileUpload,
   [
     body('title').trim().isLength({ min: 5, max: 200 }).withMessage('Title must be between 5 and 200 characters'),
     body('content').isLength({ min: 100 }).withMessage('Story must be at least 100 characters long'),
@@ -187,14 +197,11 @@ router.post('/',
       });
     } catch (error) {
       console.error('Create story error:', error);
-      console.error('Error details:', {
-        message: error.message,
-        name: error.name
-      });
+      console.error('Error stack:', error.stack);
       res.status(500).json({ 
         success: false, 
         message: error.message || 'Server error during story creation',
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        error: process.env.NODE_ENV === 'development' ? error.stack : undefined
       });
     }
   }
