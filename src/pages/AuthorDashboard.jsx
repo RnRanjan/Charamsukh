@@ -32,7 +32,7 @@ const AuthorDashboard = ({ user }) => {
   const handleDeleteStory = async (storyId) => {
     if (window.confirm('Are you sure you want to delete this story?')) {
       try {
-        const response = await fetch(`/api/stories/${storyId}`, {
+        const response = await fetch(API.stories.detail(storyId), {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -55,7 +55,7 @@ const AuthorDashboard = ({ user }) => {
           : story
       ));
       
-      const response = await fetch(`/api/stories/${storyId}/generate-audio`, {
+      const response = await fetch(API.stories.detail(storyId) + '/generate-audio', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`

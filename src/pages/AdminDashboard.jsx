@@ -169,7 +169,7 @@ const AdminDashboard = ({ user }) => {
       if (action === 'approved') body.status = 'published';
       if (action === 'rejected') body.status = 'rejected';
 
-      const response = await fetch(`/api/stories/${storyId}/moderate`, {
+      const response = await fetch(API.stories.detail(storyId) + '/moderate', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

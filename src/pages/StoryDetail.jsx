@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { API } from '../config';
 
 const StoryDetail = ({ user }) => {
   const { id } = useParams();
@@ -17,7 +18,7 @@ const StoryDetail = ({ user }) => {
   useEffect(() => {
     const fetchStory = async () => {
       try {
-        const response = await fetch(`/api/stories/${id}`, {
+        const response = await fetch(API.stories.detail(id), {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
@@ -93,7 +94,7 @@ const StoryDetail = ({ user }) => {
     }
 
     try {
-      const response = await fetch(`/api/stories/${id}/like`, {
+      const response = await fetch(API.stories.detail(id) + '/like', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -123,7 +124,7 @@ const StoryDetail = ({ user }) => {
     if (!newComment.trim() || !user) return;
 
     try {
-      const response = await fetch(`/api/stories/${id}/comment`, {
+      const response = await fetch(API.stories.detail(id) + '/comment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

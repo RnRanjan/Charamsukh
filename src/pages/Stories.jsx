@@ -31,7 +31,7 @@ const Stories = () => {
     const fetchStories = async () => {
       try {
         const categoryParam = searchParams.get('category');
-        let url = '/api/stories';
+        let url = API.stories.list;
         const params = new URLSearchParams();
         
         if (categoryParam) {
