@@ -297,4 +297,65 @@ router.post('/logout', auth, (req, res) => {
   });
 });
 
+// @route   POST /api/auth/create-admin
+// @desc    Create first admin user (development only - remove in production)
+// @access  Public (only works if no admin exists)
+router.post('/create-admin', [
+  body('name').trim().isLength({ min: 2, max: 50 }).withMessage('Name must be between 2 and 50 characters'),
+  body('email').isEmail().withMessage('Please provide a valid email'),
+  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, errors: errors.array() });
+    }
+
+    // Check if any admin already exists
+    const adminExists = await User.findOne({ role: 'admin' });
+    if (adminExists) {
+      return res.status(403).json({
+        success: false,
+        message: 'Admin already exists'
+      });
+    }
+
+    // Check if user already exists
+    const userExists = await User.findOne({ email: req.body.email });
+    if (userExists) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email already registered'
+      });
+    }
+
+    // Create new admin user
+    const user = new User({
+      name: req.body.name,
+      email: req.body.email,
+      password: req.body.password,
+      role: 'admin'
+    });
+
+    await user.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Admin user created successfully',
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    console.error('Admin creation error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error creating admin'
+    });
+  }
+});
+
 export default router;
