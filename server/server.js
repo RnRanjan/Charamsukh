@@ -64,7 +64,8 @@ app.use(cors({
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Content-Disposition']
 }));
 
 // Rate limiting
@@ -123,7 +124,13 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/categories', categoryRoutes);
 
 // Serve static files from the uploads directory
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+  fallthrough: false, // Don't fall through to next middleware if file not found
+  setHeaders: (res, path, stat) => {
+    console.log('📤 Serving static file:', path);
+    res.set('Cache-Control', 'public, max-age=31536000'); // 1 year cache
+  }
+}));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
