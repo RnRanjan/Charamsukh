@@ -37,11 +37,16 @@ const upload = multer({
 
 // Error-safe wrapper for multer
 const handleFileUpload = (req, res, next) => {
+  console.log('🔄 Processing file upload...');
   upload(req, res, (err) => {
     if (err) {
-      console.warn('File upload warning:', err.message);
+      console.warn('⚠️ File upload warning:', err.message);
       // Don't fail on upload errors, just skip files
-      req.files = {};
+      req.files = req.files || {};
+      console.log('Files available after error:', Object.keys(req.files || {}));
+    } else {
+      console.log('✅ File upload completed successfully');
+      console.log('Files received:', Object.keys(req.files || {}));
     }
     next();
   });
@@ -147,15 +152,24 @@ router.post('/',
   ], 
   async (req, res) => {
     try {
+      console.log('📝 [CREATE STORY] Request received');
+      console.log('User:', req.user);
+      console.log('Body keys:', Object.keys(req.body));
+      console.log('Files:', req.files ? Object.keys(req.files) : 'none');
+      
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
+        console.log('❌ Validation errors:', errors.array());
         return res.status(400).json({ success: false, errors: errors.array() });
       }
 
       const { title, content, category, tags = [], generateAudio = false, description = '' } = req.body;
       
+      console.log('📋 Received data:', { title, category, contentLength: content?.length, description });
+      
       // Validate required fields
       if (!title || !content || !category) {
+        console.log('❌ Missing required fields');
         return res.status(400).json({ 
           success: false, 
           message: 'Missing required fields: title, content, category' 
@@ -163,6 +177,7 @@ router.post('/',
       }
 
       if (!req.user || !req.user.userId) {
+        console.log('❌ User not authenticated');
         return res.status(401).json({ 
           success: false, 
           message: 'User not authenticated' 
@@ -171,6 +186,8 @@ router.post('/',
       
       const coverImage = req.files && req.files.coverImage ? `/uploads/${req.files.coverImage[0].filename}` : '';
       const audioFile = req.files && req.files.audioFile ? `/uploads/${req.files.audioFile[0].filename}` : '';
+
+      console.log('📂 Files to attach:', { coverImage, audioFile });
 
       const story = new Story({
         title,
@@ -188,7 +205,9 @@ router.post('/',
         }
       });
 
+      console.log('💾 Saving story to database...');
       await story.save();
+      console.log('✅ Story saved successfully:', story._id);
 
       res.status(201).json({
         success: true,
@@ -215,6 +234,7 @@ router.post('/',
         error: error.message
       });
     }
+  }
   }
 );
 
