@@ -16,6 +16,8 @@ const AdminDashboard = ({ user }) => {
   const [editingCategory, setEditingCategory] = useState(null);
   const [allCategories, setAllCategories] = useState([]);
   const [newCategory, setNewCategory] = useState({ name: '', icon: 'fa-book', color: 'bg-primary-600' });
+  const [editingCategoryId, setEditingCategoryId] = useState(null);
+  const [editCategoryData, setEditCategoryData] = useState({ name: '', icon: '', color: '' });
 
   const categories = allCategories.map(c => c.name);
 
@@ -99,6 +101,40 @@ const AdminDashboard = ({ user }) => {
       }
     } catch (error) {
       console.error('Error deleting category:', error);
+    }
+  };
+
+  const handleEditCategory = (category) => {
+    setEditingCategoryId(category._id);
+    setEditCategoryData({
+      name: category.name,
+      icon: category.icon,
+      color: category.color
+    });
+  };
+
+  const handleUpdateCategory = async (e) => {
+    e.preventDefault();
+    if (!editingCategoryId) return;
+    try {
+      const response = await fetch(`${API.API_BASE_URL}/api/categories/${editingCategoryId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(editCategoryData)
+      });
+      const data = await response.json();
+      if (data.success) {
+        setAllCategories(allCategories.map(c => 
+          c._id === editingCategoryId ? data.category : c
+        ));
+        setEditingCategoryId(null);
+        setEditCategoryData({ name: '', icon: '', color: '' });
+      }
+    } catch (error) {
+      console.error('Error updating category:', error);
     }
   };
 
@@ -490,22 +526,73 @@ const AdminDashboard = ({ user }) => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {allCategories.map(cat => (
-                    <div key={cat._id} className="bg-white/5 p-6 rounded-2xl border border-white/5 flex items-center justify-between group hover:border-white/10 transition-all">
-                      <div className="flex items-center space-x-4">
-                        <div className={`${cat.color || 'bg-slate-800'} w-12 h-12 rounded-xl flex items-center justify-center text-white`}>
-                          <i className={`fas ${cat.icon || 'fa-tag'}`}></i>
-                        </div>
-                        <div>
-                          <p className="font-bold text-white">{cat.name}</p>
-                          <p className="text-[10px] text-slate-500 uppercase tracking-widest">{cat.icon}</p>
-                        </div>
-                      </div>
-                      <button 
-                        onClick={() => handleDeleteCategory(cat._id)}
-                        className="w-10 h-10 bg-red-500/10 text-red-400 rounded-xl hover:bg-red-500 hover:text-white transition-all opacity-0 group-hover:opacity-100"
-                      >
-                        <i className="fas fa-trash"></i>
-                      </button>
+                    <div key={cat._id} className={`bg-white/5 p-6 rounded-2xl border ${editingCategoryId === cat._id ? 'border-primary-500' : 'border-white/5'} flex flex-col group hover:border-white/10 transition-all`}>
+                      {editingCategoryId === cat._id ? (
+                        <form onSubmit={handleUpdateCategory} className="space-y-4">
+                          <input 
+                            type="text" 
+                            value={editCategoryData.name}
+                            onChange={(e) => setEditCategoryData({...editCategoryData, name: e.target.value})}
+                            className="w-full px-3 py-2 bg-slate-950 border border-primary-500/30 text-white rounded-lg text-sm outline-none"
+                            placeholder="Category Name"
+                            required
+                          />
+                          <input 
+                            type="text" 
+                            value={editCategoryData.icon}
+                            onChange={(e) => setEditCategoryData({...editCategoryData, icon: e.target.value})}
+                            className="w-full px-3 py-2 bg-slate-950 border border-primary-500/30 text-white rounded-lg text-sm outline-none"
+                            placeholder="Icon (fa-...)"
+                          />
+                          <input 
+                            type="text" 
+                            value={editCategoryData.color}
+                            onChange={(e) => setEditCategoryData({...editCategoryData, color: e.target.value})}
+                            className="w-full px-3 py-2 bg-slate-950 border border-primary-500/30 text-white rounded-lg text-sm outline-none"
+                            placeholder="Color (bg-...)"
+                          />
+                          <div className="flex gap-2">
+                            <button type="submit" className="flex-1 bg-green-600 text-white text-xs font-bold py-2 rounded-lg hover:bg-green-700">
+                              Save
+                            </button>
+                            <button 
+                              type="button"
+                              onClick={() => setEditingCategoryId(null)}
+                              className="flex-1 bg-slate-700 text-white text-xs font-bold py-2 rounded-lg hover:bg-slate-600"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </form>
+                      ) : (
+                        <>
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center space-x-4">
+                              <div className={`${cat.color || 'bg-slate-800'} w-12 h-12 rounded-xl flex items-center justify-center text-white`}>
+                                <i className={`fas ${cat.icon || 'fa-tag'}`}></i>
+                              </div>
+                              <div>
+                                <p className="font-bold text-white">{cat.name}</p>
+                                <p className="text-[10px] text-slate-500 uppercase tracking-widest">{cat.icon}</p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <button 
+                              onClick={() => handleEditCategory(cat)}
+                              className="flex-1 bg-blue-500/10 text-blue-400 text-xs font-bold py-2 rounded-lg hover:bg-blue-500 hover:text-white transition-all"
+                            >
+                              <i className="fas fa-edit mr-1"></i>Edit
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteCategory(cat._id)}
+                              className="flex-1 bg-red-500/10 text-red-400 text-xs font-bold py-2 rounded-lg hover:bg-red-500 hover:text-white transition-all"
+                            >
+                              <i className="fas fa-trash mr-1"></i>Delete
+                            </button>
+                          </div>
+                        </>
+                      )}
                     </div>
                   ))}
                 </div>

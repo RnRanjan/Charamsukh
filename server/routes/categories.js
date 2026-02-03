@@ -56,4 +56,26 @@ router.delete('/:id', auth, authorize('admin'), async (req, res) => {
   }
 });
 
+// @route   PUT /api/categories/:id
+// @desc    Update a category
+// @access  Private (Admin)
+router.put('/:id', auth, authorize('admin'), async (req, res) => {
+  try {
+    const { name, icon, color } = req.body;
+    
+    const category = await Category.findByIdAndUpdate(
+      req.params.id,
+      { name, icon, color },
+      { new: true, runValidators: true }
+    );
+    
+    if (!category) return res.status(404).json({ success: false, message: 'Category not found' });
+    
+    res.json({ success: true, category });
+  } catch (error) {
+    console.error('❌ Error updating category:', error.message);
+    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+  }
+});
+
 export default router;
