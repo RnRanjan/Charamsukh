@@ -78,9 +78,6 @@ app.use(limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static files from the uploads directory
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
 // MongoDB connection with retry logic
 const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/charamsukh';
 console.log('Attempting to connect to MongoDB...');
@@ -124,6 +121,9 @@ app.use('/api/stories', storyRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/categories', categoryRoutes);
+
+// Serve static files from the uploads directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
