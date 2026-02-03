@@ -68,6 +68,9 @@ const CreateStory = ({ user }) => {
         dataToSend.append('audioFile', formData.audioFile);
       }
 
+      console.log('Publishing story to:', API.stories.list);
+      console.log('Token exists:', !!localStorage.getItem('token'));
+
       const response = await fetch(API.stories.list, {
         method: 'POST',
         headers: {
@@ -76,10 +79,14 @@ const CreateStory = ({ user }) => {
         body: dataToSend
       });
 
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+
       const data = await response.json();
+      console.log('Response data:', data);
 
       if (!response.ok) {
-        throw new Error(data.message || 'Error publishing story');
+        throw new Error(data.message || `Error publishing story (${response.status})`);
       }
 
       // Simulate audio generation if requested
@@ -95,20 +102,21 @@ const CreateStory = ({ user }) => {
         navigate('/author');
       }
     } catch (error) {
-      alert(error.message || 'Error publishing story');
+      console.error('Error publishing story:', error);
+      alert(error.message || 'Error publishing story. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  if (!user || user.role !== 'author') {
+  if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-950">
         <div className="text-center bg-slate-900/50 backdrop-blur-xl border border-white/10 p-12 rounded-3xl shadow-2xl relative overflow-hidden">
           <div className="absolute -top-10 -left-10 w-40 h-40 bg-primary-600/10 rounded-full blur-3xl"></div>
-          <i className="fas fa-pen text-6xl text-slate-700 mb-6"></i>
-          <h2 className="text-3xl font-bold mb-4 text-white">Author Access Required</h2>
-          <p className="text-slate-400 mb-8 max-w-xs mx-auto">You need to be registered as an author to share your stories with our community.</p>
+          <i className="fas fa-lock text-6xl text-slate-700 mb-6"></i>
+          <h2 className="text-3xl font-bold mb-4 text-white">Login Required</h2>
+          <p className="text-slate-400 mb-8 max-x-xs mx-auto">You need to be logged in to share your stories with our community.</p>
         </div>
       </div>
     );
