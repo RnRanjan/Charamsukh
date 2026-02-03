@@ -7,6 +7,7 @@ const AdminCategories = ({ user }) => {
   const [newCategory, setNewCategory] = useState({ name: '', icon: 'fa-book', color: 'bg-primary-600' });
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState({ name: '', icon: '', color: '' });
+  const [submitting, setSubmitting] = useState(false);
 
   const iconOptions = ['fa-book', 'fa-heart', 'fa-star', 'fa-lightbulb', 'fa-leaf', 'fa-fire', 'fa-music', 'fa-pen'];
   const colorOptions = ['bg-primary-600', 'bg-rose-600', 'bg-blue-600', 'bg-green-600', 'bg-purple-600', 'bg-orange-600'];
@@ -21,6 +22,8 @@ const AdminCategories = ({ user }) => {
       const data = await res.json();
       if (data.success) {
         setCategories(data.categories);
+      } else {
+        console.error('Failed to fetch categories:', data.message);
       }
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -31,6 +34,14 @@ const AdminCategories = ({ user }) => {
 
   const handleAddCategory = async (e) => {
     e.preventDefault();
+    
+    // Basic validation
+    if (!newCategory.name.trim()) {
+      alert('Category name is required');
+      return;
+    }
+    
+    setSubmitting(true);
     try {
       const headers = {
         'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -45,13 +56,27 @@ const AdminCategories = ({ user }) => {
       if (data.success) {
         setCategories([...categories, data.category]);
         setNewCategory({ name: '', icon: 'fa-book', color: 'bg-primary-600' });
+        alert('Category added successfully!');
+      } else {
+        console.error('Failed to add category:', data.message);
+        alert(`Error: ${data.message || 'Failed to add category'}`);
       }
     } catch (error) {
       console.error('Error adding category:', error);
+      alert('Error adding category. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const handleUpdateCategory = async () => {
+    // Basic validation
+    if (!editData.name.trim()) {
+      alert('Category name is required');
+      return;
+    }
+    
+    setSubmitting(true);
     try {
       const headers = {
         'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -67,9 +92,16 @@ const AdminCategories = ({ user }) => {
         setCategories(categories.map(c => c._id === editingId ? { ...c, ...editData } : c));
         setEditingId(null);
         setEditData({ name: '', icon: '', color: '' });
+        alert('Category updated successfully!');
+      } else {
+        console.error('Failed to update category:', data.message);
+        alert(`Error: ${data.message || 'Failed to update category'}`);
       }
     } catch (error) {
       console.error('Error updating category:', error);
+      alert('Error updating category. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -84,9 +116,14 @@ const AdminCategories = ({ user }) => {
       const data = await res.json();
       if (data.success) {
         setCategories(categories.filter(c => c._id !== id));
+        alert('Category deleted successfully!');
+      } else {
+        console.error('Failed to delete category:', data.message);
+        alert(`Error: ${data.message || 'Failed to delete category'}`);
       }
     } catch (error) {
       console.error('Error deleting category:', error);
+      alert('Error deleting category. Please try again.');
     }
   };
 
@@ -130,9 +167,14 @@ const AdminCategories = ({ user }) => {
           </select>
           <button
             type="submit"
-            className="px-6 py-2 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition-colors"
+            disabled={submitting}
+            className="px-6 py-2 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition-colors disabled:opacity-50"
           >
-            Add Category
+            {submitting ? (
+              <>
+                <i className="fas fa-spinner fa-spin mr-2"></i> Adding...
+              </>
+            ) : 'Add Category'}
           </button>
         </form>
       </div>
@@ -171,9 +213,14 @@ const AdminCategories = ({ user }) => {
               <div className="flex gap-3">
                 <button
                   onClick={handleUpdateCategory}
-                  className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition-colors"
+                  disabled={submitting}
+                  className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition-colors disabled:opacity-50"
                 >
-                  Update
+                  {submitting ? (
+                    <>
+                      <i className="fas fa-spinner fa-spin mr-2"></i> Updating...
+                    </>
+                  ) : 'Update'}
                 </button>
                 <button
                   onClick={() => setEditingId(null)}
