@@ -68,7 +68,7 @@ mongoose.connect(mongoURI)
 .catch(err => {
   console.error('❌ MongoDB connection error:', err.message);
   console.error('Full error:', err);
-  process.exit(1);
+  console.warn('⚠️ Server starting without database connection - will retry automatically');
 });
 
 // Routes
