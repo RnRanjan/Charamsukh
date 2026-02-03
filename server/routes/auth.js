@@ -70,7 +70,6 @@ router.post('/register', [
       message: 'Server error during registration',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
-    });
   }
 });
 
