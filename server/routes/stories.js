@@ -127,7 +127,15 @@ router.get('/:id', optionalAuth, async (req, res) => {
 // @route   POST /api/stories
 // @desc    Create a new story
 // @access  Private (Any authenticated user)
-router.post('/', auth, storyUpload, [
+router.post('/', auth, (req, res, next) => {
+  storyUpload(req, res, (err) => {
+    if (err) {
+      console.error('Multer error:', err);
+      return res.status(400).json({ success: false, message: 'File upload error: ' + err.message });
+    }
+    next();
+  });
+}, [
   body('title').trim().isLength({ min: 5, max: 200 }).withMessage('Title must be between 5 and 200 characters'),
   body('content').isLength({ min: 100 }).withMessage('Story must be at least 100 characters long'),
   body('category').notEmpty().withMessage('Category is required')
