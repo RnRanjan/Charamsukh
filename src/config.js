@@ -1,8 +1,9 @@
 // API Configuration
-export const API_BASE_URL = 
-  process.env.NODE_ENV === 'production' 
-    ? 'https://charamsukh-api.onrender.com'
-    : 'http://localhost:5000';
+const isDevelopment = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+
+export const API_BASE_URL = isDevelopment
+  ? 'http://localhost:5000'
+  : 'https://charamsukh-api.onrender.com';
 
 export const API = {
   categories: `${API_BASE_URL}/api/categories`,
