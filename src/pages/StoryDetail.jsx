@@ -156,7 +156,7 @@ const StoryDetail = ({ user }) => {
       {story.coverImage && (
         <div className="w-full h-[40vh] relative">
           <img 
-            src={story.coverImage} 
+            src={story.coverImage.startsWith('http') ? story.coverImage : `${API_BASE_URL}${story.coverImage}`} 
             alt={story.title}
             className="w-full h-full object-cover"
           />

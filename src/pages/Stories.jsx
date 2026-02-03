@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { API } from '../config';
+import { API, API_BASE_URL } from '../config';
 
 const Stories = () => {
   const [stories, setStories] = useState([]);
@@ -256,7 +256,7 @@ const Stories = () => {
                       <div className="h-56 relative bg-slate-800 flex items-center justify-center overflow-hidden">
                         {story.coverImage ? (
                           <img 
-                            src={story.coverImage} 
+                            src={story.coverImage.startsWith('http') ? story.coverImage : `${API_BASE_URL}${story.coverImage}`} 
                             alt={story.title}
                             className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                             onError={(e) => {
@@ -307,7 +307,7 @@ const Stories = () => {
                       <div className="w-40 h-40 shrink-0 relative bg-slate-800 rounded-xl overflow-hidden flex items-center justify-center mr-6">
                         {story.coverImage ? (
                           <img 
-                            src={story.coverImage} 
+                            src={story.coverImage.startsWith('http') ? story.coverImage : `${API_BASE_URL}${story.coverImage}`} 
                             alt={story.title}
                             className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                           />

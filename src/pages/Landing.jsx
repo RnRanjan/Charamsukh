@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { API } from '../config';
+import { API, API_BASE_URL } from '../config';
 
 const Landing = () => {
   const [featuredStories, setFeaturedStories] = useState([]);
@@ -92,7 +92,7 @@ const Landing = () => {
                 <div className="relative h-64 overflow-hidden bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
                   {story.coverImage ? (
                     <img 
-                      src={story.coverImage} 
+                      src={story.coverImage.startsWith('http') ? story.coverImage : `${API_BASE_URL}${story.coverImage}`} 
                       alt={story.title}
                       className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
