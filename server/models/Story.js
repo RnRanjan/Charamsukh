@@ -148,13 +148,13 @@ const storySchema = new mongoose.Schema({
 
 // Calculate read time and description before saving
 storySchema.pre('save', function(next) {
-  if (this.isModified('content') && this.content) {
+  if (this.isModified('content') && this.content && typeof this.content === 'string') {
     const wordsPerMinute = 200;
     const wordCount = this.content.split(/\s+/).length;
     this.readTime = Math.ceil(wordCount / wordsPerMinute);
     
     // Auto-generate description if empty
-    if (!this.description && this.content.length > 0) {
+    if (!this.description && typeof this.content === 'string' && this.content.length > 0) {
       this.description = this.content.substring(0, 160).trim() + '...';
     }
   }
