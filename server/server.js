@@ -33,7 +33,7 @@ app.use(cors({
     process.env.CLIENT_URL || 'http://localhost:5173', 
     'http://localhost:5175', 
     'http://localhost:5174',
-    'https://rnranjan.github.io'
+    'https://rnranjan.github.io/Charamsukh/'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -55,9 +55,21 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // MongoDB connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/charamsukh')
-.then(() => console.log('MongoDB connected successfully'))
-.catch(err => console.error('MongoDB connection error:', err));
+const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/charamsukh';
+console.log('Attempting to connect to MongoDB...');
+console.log('MONGODB_URI exists:', !!process.env.MONGODB_URI);
+console.log('NODE_ENV:', process.env.NODE_ENV);
+
+mongoose.connect(mongoURI)
+.then(() => {
+  console.log('✅ MongoDB connected successfully');
+  console.log('Database:', mongoose.connection.name);
+})
+.catch(err => {
+  console.error('❌ MongoDB connection error:', err.message);
+  console.error('Full error:', err);
+  process.exit(1);
+});
 
 // Routes
 app.use('/api/auth', authRoutes);

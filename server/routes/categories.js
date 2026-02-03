@@ -13,7 +13,8 @@ router.get('/', async (req, res) => {
     const categories = await Category.find({ isActive: true });
     res.json({ success: true, categories });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error('❌ Error fetching categories:', error.message);
+    res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
 });
 
