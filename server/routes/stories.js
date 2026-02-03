@@ -196,12 +196,23 @@ router.post('/',
         story
       });
     } catch (error) {
-      console.error('Create story error:', error);
-      console.error('Error stack:', error.stack);
+      console.error('❌ Create story error:', error.message);
+      console.error('Error type:', error.name);
+      console.error('Error details:', error);
+      
+      // Return more specific error messages
+      if (error.name === 'ValidationError') {
+        const messages = Object.values(error.errors).map(e => e.message);
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Validation error: ' + messages.join(', ')
+        });
+      }
+      
       res.status(500).json({ 
         success: false, 
         message: error.message || 'Server error during story creation',
-        error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        error: error.message
       });
     }
   }
