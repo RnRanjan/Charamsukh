@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API } from '../config';
 
 const AdminDashboard = ({ user }) => {
   const [stats, setStats] = useState({
@@ -21,7 +22,7 @@ const AdminDashboard = ({ user }) => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await fetch('/api/categories');
+        const res = await fetch(API.categories);
         const data = await res.json();
         if (data.success) {
           setAllCategories(data.categories);
@@ -41,17 +42,17 @@ const AdminDashboard = ({ user }) => {
         const headers = { 'Authorization': `Bearer ${localStorage.getItem('token')}` };
         
         // Fetch stats
-        const statsRes = await fetch('/api/admin/stats', { headers });
+        const statsRes = await fetch(API.admin.stats, { headers });
         const statsData = await statsRes.json();
         if (statsData.success) setStats(statsData.stats);
 
         // Fetch users
-        const usersRes = await fetch('/api/admin/users', { headers });
+        const usersRes = await fetch(API.admin.users, { headers });
         const usersData = await usersRes.json();
         if (usersData.success) setUsers(usersData.users);
 
         // Fetch stories
-        const storiesRes = await fetch('/api/admin/stories', { headers });
+        const storiesRes = await fetch(API.admin.stories, { headers });
         const storiesData = await storiesRes.json();
         if (storiesData.success) setStories(storiesData.stories);
 
@@ -66,7 +67,7 @@ const AdminDashboard = ({ user }) => {
   const handleAddCategory = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('/api/categories', {
+      const response = await fetch(API.admin.categories.create, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -87,7 +88,7 @@ const AdminDashboard = ({ user }) => {
   const handleDeleteCategory = async (id) => {
     if (!window.confirm('Are you sure you want to remove this category?')) return;
     try {
-      const response = await fetch(`/api/categories/${id}`, {
+      const response = await fetch(API.admin.categories.delete(id), {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`

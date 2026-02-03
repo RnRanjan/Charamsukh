@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { API } from '../config';
 
 const AuthorDashboard = ({ user }) => {
   const [stats, setStats] = useState({});
@@ -10,7 +11,7 @@ const AuthorDashboard = ({ user }) => {
 
     const fetchAuthorData = async () => {
       try {
-        const response = await fetch('/api/users/author/stats', {
+        const response = await fetch(API.users.authorStats, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }

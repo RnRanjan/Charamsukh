@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API } from '../config';
 
 const CreateStory = ({ user }) => {
   const [formData, setFormData] = useState({
@@ -20,7 +21,7 @@ const CreateStory = ({ user }) => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await fetch('/api/categories');
+        const res = await fetch(API.categories);
         const data = await res.json();
         if (data.success) {
           setCategories(data.categories.map(c => c.name));
@@ -67,7 +68,7 @@ const CreateStory = ({ user }) => {
         dataToSend.append('audioFile', formData.audioFile);
       }
 
-      const response = await fetch('/api/stories', {
+      const response = await fetch(API.stories.list, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`

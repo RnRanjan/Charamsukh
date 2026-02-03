@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { API } from '../config';
 
 const Landing = () => {
   const [featuredStories, setFeaturedStories] = useState([]);
@@ -8,7 +9,7 @@ const Landing = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await fetch('/api/categories');
+        const res = await fetch(API.categories);
         const data = await res.json();
         if (data.success) {
           // Add default color if missing from API
@@ -29,7 +30,7 @@ const Landing = () => {
   useEffect(() => {
     const fetchFeaturedStories = async () => {
       try {
-        const response = await fetch('/api/stories/featured');
+        const response = await fetch(API.stories.featured);
         const data = await response.json();
         if (data.success) {
           setFeaturedStories(data.stories);

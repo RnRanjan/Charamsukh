@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { API } from './config';
 import Navbar from './components/Navbar';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
@@ -25,7 +26,7 @@ function App() {
       if (!token) return;
 
       try {
-        const response = await fetch('/api/auth/me', {
+        const response = await fetch(API.auth.me, {
           headers: {
             'Authorization': `Bearer ${token}`
           }

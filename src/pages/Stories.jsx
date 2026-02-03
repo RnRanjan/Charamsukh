@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { API } from '../config';
 
 const Stories = () => {
   const [stories, setStories] = useState([]);
@@ -14,7 +15,7 @@ const Stories = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await fetch('/api/categories');
+        const res = await fetch(API.categories);
         const data = await res.json();
         if (data.success) {
           setCategories(data.categories.map(c => c.name));

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { API } from '../config';
 
 const Register = ({ setUser }) => {
   const [formData, setFormData] = useState({
@@ -32,7 +33,7 @@ const Register = ({ setUser }) => {
     }
 
     try {
-      const response = await fetch('/api/auth/register', {
+      const response = await fetch(API.auth.register, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { API } from '../config';
 
 const UserDashboard = ({ user }) => {
   const [stats, setStats] = useState({});
@@ -12,7 +13,7 @@ const UserDashboard = ({ user }) => {
 
     const fetchDashboardData = async () => {
       try {
-        const response = await fetch('/api/users/dashboard', {
+        const response = await fetch(API.users.dashboard, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
