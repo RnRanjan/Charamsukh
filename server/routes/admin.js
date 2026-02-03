@@ -63,4 +63,32 @@ router.get('/stories', auth, authorize('admin'), async (req, res) => {
   }
 });
 
+// @route   PUT /api/admin/users/:id
+// @desc    Update user status (activate/suspend)
+// @access  Private (Admin)
+router.put('/users/:id', auth, authorize('admin'), async (req, res) => {
+  try {
+    const { isActive } = req.body;
+    
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { isActive },
+      { new: true }
+    );
+    
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    
+    res.json({ 
+      success: true, 
+      user,
+      message: isActive ? 'User activated' : 'User suspended'
+    });
+  } catch (error) {
+    console.error('❌ Error updating user:', error.message);
+    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+  }
+});
+
 export default router;

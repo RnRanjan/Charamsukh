@@ -138,12 +138,29 @@ const AdminDashboard = ({ user }) => {
     }
   };
 
-  const handleUserAction = (userId, action) => {
-    setUsers(users.map(u => 
-      u._id === userId 
-        ? { ...u, status: action === 'suspend' ? 'suspended' : 'active' }
-        : u
-    ));
+  const handleUserAction = async (userId, action) => {
+    try {
+      const newStatus = action === 'suspend' ? 'suspended' : 'active';
+      const response = await fetch(`${API.API_BASE_URL}/api/admin/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ isActive: newStatus === 'active' })
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        setUsers(users.map(u => 
+          u._id === userId 
+            ? { ...u, isActive: newStatus === 'active', status: newStatus }
+            : u
+        ));
+      }
+    } catch (error) {
+      console.error('Error updating user status:', error);
+    }
   };
 
   const handleStoryAction = async (storyId, action, extraData = {}) => {
