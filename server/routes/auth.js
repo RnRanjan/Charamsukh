@@ -353,7 +353,8 @@ router.post('/create-admin', [
     console.error('Admin creation error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error creating admin'
+      message: 'Server error creating admin',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
     });
   }
 });

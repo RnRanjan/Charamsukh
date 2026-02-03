@@ -71,7 +71,8 @@ app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
     message: 'CharamSukh API is running',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    mongoConnected: mongoose.connection.readyState === 1
   });
 });
 
