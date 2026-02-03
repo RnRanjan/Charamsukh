@@ -2,6 +2,7 @@ import express from 'express';
 import { body, validationResult } from 'express-validator';
 import multer from 'multer';
 import path from 'path';
+import mongoose from 'mongoose';
 import Story from '../models/Story.js';
 import User from '../models/User.js';
 import { auth, authorize, optionalAuth } from '../middleware/auth.js';
@@ -177,7 +178,8 @@ router.post('/',
 
       const { title, content, category, tags = [], generateAudio = false, description = '' } = req.body;
       
-      console.log('📋 Received data:', { title, category, contentLength: content?.length, description });
+      console.log('📋 Received data:', { title, category, contentLength: content?.length, description, tags: typeof tags });
+      console.log('📋 User object:', req.user);
       
       // Validate required fields
       if (!title || !content || !category) {
@@ -200,10 +202,37 @@ router.post('/',
       console.log('✅ All validations passed');
 
       if (!req.user || !req.user.userId) {
-        console.log('❌ User not authenticated');
+        console.log('❌ User not authenticated', { hasUser: !!req.user, hasUserId: !!(req.user && req.user.userId) });
         return res.status(401).json({ 
           success: false, 
           message: 'User not authenticated' 
+        });
+      }
+      
+      // Verify user exists in database
+      if (mongoose.connection.readyState !== 1) {
+        console.log('❌ Database not connected');
+        return res.status(503).json({
+          success: false,
+          message: 'Database not connected'
+        });
+      }
+      
+      try {
+        const user = await User.findById(req.user.userId);
+        if (!user) {
+          console.log('❌ User not found in database:', req.user.userId);
+          return res.status(404).json({
+            success: false,
+            message: 'User not found'
+          });
+        }
+        console.log('✅ User verified:', user.name, user._id);
+      } catch (userError) {
+        console.error('❌ Error verifying user:', userError.message);
+        return res.status(500).json({
+          success: false,
+          message: 'Error verifying user account'
         });
       }
       
@@ -223,12 +252,22 @@ router.post('/',
 
       console.log('📂 Files to attach:', { coverImage, audioFile });
 
+      // Process tags properly
+      let processedTags = [];
+      if (typeof tags === 'string') {
+        processedTags = tags.split(',').map(t => t.trim()).filter(t => t);
+      } else if (Array.isArray(tags)) {
+        processedTags = tags.map(t => t.trim()).filter(t => t);
+      }
+      
+      console.log('🏷️ Processed tags:', processedTags);
+      
       const story = new Story({
         title,
         description,
         content,
         category,
-        tags: typeof tags === 'string' ? tags.split(',').map(t => t.trim()) : tags,
+        tags: processedTags,
         author: req.user.userId,
         coverImage,
         status: 'published',
@@ -243,9 +282,11 @@ router.post('/',
       console.log('Story object to save:', {
         title: story.title,
         author: story.author,
+        authorType: typeof story.author,
         category: story.category,
         contentLength: story.content.length,
-        hasCoverImage: !!story.coverImage
+        hasCoverImage: !!story.coverImage,
+        tags: story.tags
       });
       
       const savedStory = await story.save();
