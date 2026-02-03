@@ -252,10 +252,22 @@ router.post('/',
 
       console.log('📂 Files to attach:', { coverImage, audioFile });
 
-      // Process tags properly
+      // Process tags properly - handle both string and JSON string formats
       let processedTags = [];
       if (typeof tags === 'string') {
-        processedTags = tags.split(',').map(t => t.trim()).filter(t => t);
+        try {
+          // First, try to parse as JSON (in case it's a JSON string from frontend)
+          const parsedTags = JSON.parse(tags);
+          if (Array.isArray(parsedTags)) {
+            processedTags = parsedTags.map(t => t.trim()).filter(t => t);
+          } else {
+            // If not an array, treat as comma-separated string
+            processedTags = tags.split(',').map(t => t.trim()).filter(t => t);
+          }
+        } catch (e) {
+          // If JSON parsing fails, treat as comma-separated string
+          processedTags = tags.split(',').map(t => t.trim()).filter(t => t);
+        }
       } else if (Array.isArray(tags)) {
         processedTags = tags.map(t => t.trim()).filter(t => t);
       }
@@ -295,7 +307,7 @@ router.post('/',
       res.status(201).json({
         success: true,
         message: 'Story created successfully',
-        story
+        story: savedStory
       });
     } catch (error) {
       console.error('❌ Create story error:', error.message);
@@ -394,7 +406,7 @@ router.delete('/:id', auth, async (req, res) => {
     if (!story) return res.status(404).json({ success: false, message: 'Story not found' });
 
     // Check ownership
-    if (story.author.toString() !== req.user.userId && req.userRole !== 'admin') {
+    if (story.author.toString() !== req.user.userId && req.user.role !== 'admin') {
       return res.status(403).json({ success: false, message: 'Not authorized' });
     }
 
