@@ -140,6 +140,21 @@ router.post('/', auth, storyUpload, [
 
     const { title, content, category, tags = [], generateAudio = false, description = '' } = req.body;
     
+    // Validate required fields
+    if (!title || !content || !category) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Missing required fields: title, content, category' 
+      });
+    }
+
+    if (!req.user || !req.user.userId) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'User not authenticated' 
+      });
+    }
+    
     const coverImage = req.files && req.files.coverImage ? `/uploads/${req.files.coverImage[0].filename}` : '';
     const audioFile = req.files && req.files.audioFile ? `/uploads/${req.files.audioFile[0].filename}` : '';
 
@@ -168,7 +183,16 @@ router.post('/', auth, storyUpload, [
     });
   } catch (error) {
     console.error('Create story error:', error);
-    res.status(500).json({ success: false, message: 'Server error during story creation' });
+    console.error('Error details:', {
+      message: error.message,
+      name: error.name,
+      stack: error.stack
+    });
+    res.status(500).json({ 
+      success: false, 
+      message: error.message || 'Server error during story creation',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 

@@ -54,6 +54,13 @@ const CreateStory = ({ user }) => {
     setLoading(true);
 
     try {
+      // Validate form
+      if (!formData.title || !formData.content || !formData.category) {
+        alert('Please fill in all required fields: Title, Content, and Category');
+        setLoading(false);
+        return;
+      }
+
       const dataToSend = new FormData();
       dataToSend.append('title', formData.title);
       dataToSend.append('category', formData.category);
@@ -69,7 +76,15 @@ const CreateStory = ({ user }) => {
       }
 
       console.log('Publishing story to:', API.stories.list);
-      console.log('Token exists:', !!localStorage.getItem('token'));
+      console.log('Form Data:', {
+        title: formData.title,
+        category: formData.category,
+        description: formData.description,
+        contentLength: formData.content.length,
+        hasCoverImage: !!formData.coverImage,
+        hasAudioFile: !!formData.audioFile,
+        token: localStorage.getItem('token') ? 'present' : 'missing'
+      });
 
       const response = await fetch(API.stories.list, {
         method: 'POST',
@@ -86,7 +101,7 @@ const CreateStory = ({ user }) => {
       console.log('Response data:', data);
 
       if (!response.ok) {
-        throw new Error(data.message || `Error publishing story (${response.status})`);
+        throw new Error(data.message || data.error || `Error publishing story (${response.status})`);
       }
 
       // Simulate audio generation if requested
