@@ -33,7 +33,7 @@ app.use(cors({
     process.env.CLIENT_URL || 'http://localhost:5173', 
     'http://localhost:5175', 
     'http://localhost:5174',
-    'https://rnranjan.github.io'
+    'https://rnranjan.github.io/Charamsukh/'
   ],
   credentials: true
 }));
