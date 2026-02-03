@@ -153,7 +153,7 @@ const StoryDetail = ({ user }) => {
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950">
       {/* Story Banner */}
-      {story.coverImage && (
+      {story.coverImage && story.coverImage !== '' && (
         <div className="w-full h-[40vh] relative">
           <img 
             src={story.coverImage.startsWith('http') ? story.coverImage : `${API_BASE_URL}${story.coverImage}`} 
