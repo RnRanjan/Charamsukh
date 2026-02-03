@@ -25,9 +25,13 @@ const CreateStory = ({ user }) => {
         const data = await res.json();
         if (data.success) {
           setCategories(data.categories.map(c => c.name));
+        } else {
+          console.error('Failed to fetch categories:', data.message);
+          setCategories([]);
         }
       } catch (error) {
         console.error('Error fetching categories:', error);
+        setCategories([]);
       }
     };
     fetchCategories();
@@ -61,13 +65,44 @@ const CreateStory = ({ user }) => {
         return;
       }
 
+      // Additional validation
+      if (formData.title.length < 5) {
+        alert('Title must be at least 5 characters long');
+        setLoading(false);
+        return;
+      }
+
+      if (formData.content.length < 100) {
+        alert('Story content must be at least 100 characters long');
+        setLoading(false);
+        return;
+      }
+
+      // Check if token exists
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Authentication token missing. Please log in again.');
+        setLoading(false);
+        navigate('/login');
+        return;
+      }
+
       const dataToSend = new FormData();
       dataToSend.append('title', formData.title);
       dataToSend.append('category', formData.category);
-      dataToSend.append('tags', formData.tags);
+      
+      // Handle tags properly - split by comma and trim
+      if (formData.tags && formData.tags.trim()) {
+        const tagsArray = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+        dataToSend.append('tags', JSON.stringify(tagsArray)); // Send as JSON string
+      } else {
+        dataToSend.append('tags', '[]'); // Send empty array
+      }
+      
       dataToSend.append('description', formData.description);
       dataToSend.append('content', formData.content);
-      dataToSend.append('generateAudio', formData.generateAudio);
+      dataToSend.append('generateAudio', formData.generateAudio.toString()); // Convert to string
+      
       if (formData.coverImage) {
         dataToSend.append('coverImage', formData.coverImage);
       }
@@ -79,17 +114,19 @@ const CreateStory = ({ user }) => {
       console.log('Form Data:', {
         title: formData.title,
         category: formData.category,
+        tags: formData.tags,
         description: formData.description,
         contentLength: formData.content.length,
         hasCoverImage: !!formData.coverImage,
         hasAudioFile: !!formData.audioFile,
-        token: localStorage.getItem('token') ? 'present' : 'missing'
+        generateAudio: formData.generateAudio,
+        token: token ? 'present' : 'missing'
       });
 
       const response = await fetch(API.stories.list, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         },
         body: dataToSend
       });
@@ -101,25 +138,48 @@ const CreateStory = ({ user }) => {
       console.log('Response data:', data);
 
       if (!response.ok) {
-        throw new Error(data.message || data.error || `Error publishing story (${response.status})`);
+        // Handle specific error cases
+        if (response.status === 400) {
+          alert(`Validation error: ${data.message || 'Invalid input data'}`);
+        } else if (response.status === 401) {
+          alert('Unauthorized. Please log in again.');
+          navigate('/login');
+        } else if (response.status === 403) {
+          alert('Forbidden. You do not have permission to publish stories.');
+        } else if (response.status === 422) {
+          alert(`Validation failed: ${data.message || 'Unprocessable entity'}`);
+        } else {
+          alert(`Server error (${response.status}): ${data.message || data.error || 'Something went wrong!'}`);
+        }
+        setLoading(false);
+        return;
       }
 
-      // Simulate audio generation if requested
-      if (formData.generateAudio) {
-        setAudioGenerating(true);
-        setTimeout(() => {
-          setAudioGenerating(false);
-          alert('Story published successfully with audio!');
+      if (data.success) {
+        // Success case
+        if (formData.generateAudio) {
+          setAudioGenerating(true);
+          setTimeout(() => {
+            setAudioGenerating(false);
+            alert(data.message || 'Story published successfully with audio!');
+            navigate('/author');
+          }, 3000);
+        } else {
+          alert(data.message || 'Story published successfully!');
           navigate('/author');
-        }, 3000);
+        }
       } else {
-        alert('Story published successfully!');
-        navigate('/author');
+        // Handle successful response with success=false
+        alert(data.message || 'Failed to publish story. Please try again.');
+        setLoading(false);
       }
     } catch (error) {
       console.error('Error publishing story:', error);
-      alert(error.message || 'Error publishing story. Please try again.');
-    } finally {
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        alert('Network error: Unable to connect to the server. Please check your internet connection.');
+      } else {
+        alert(error.message || 'Error publishing story. Please try again.');
+      }
       setLoading(false);
     }
   };
