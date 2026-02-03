@@ -135,6 +135,29 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Test static file serving
+app.get('/api/test-upload', (req, res) => {
+  const fs = require('fs');
+  const path = require('path');
+  const uploadsDir = path.join(__dirname, 'uploads');
+  
+  // Check if uploads directory exists
+  const dirExists = fs.existsSync(uploadsDir);
+  
+  // List files in uploads directory
+  let files = [];
+  if (dirExists) {
+    files = fs.readdirSync(uploadsDir);
+  }
+  
+  res.json({
+    uploadsDirExists: dirExists,
+    uploadsDirPath: uploadsDir,
+    files: files,
+    filesCount: files.length
+  });
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('❌ ERROR:', err);
