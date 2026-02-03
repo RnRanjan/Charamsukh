@@ -360,4 +360,50 @@ router.post('/create-admin', [
   }
 });
 
+// @route   POST /api/auth/setup-admin
+// @desc    Update existing user to admin (one-time setup)
+// @access  Public (for initial setup only)
+router.post('/setup-admin', async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required'
+      });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Update user role to admin
+    user.role = 'admin';
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'User role updated to admin successfully',
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    console.error('Setup admin error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
 export default router;

@@ -7,6 +7,8 @@ const UserDashboard = ({ user }) => {
   const [bookmarkedStories, setBookmarkedStories] = useState([]);
   const [readingHistory, setReadingHistory] = useState([]);
   const [continueReading, setContinueReading] = useState([]);
+  const [recommendations, setRecommendations] = useState([]);
+  const [topAuthors, setTopAuthors] = useState([]);
 
   useEffect(() => {
     if (!user) return;
@@ -24,6 +26,9 @@ const UserDashboard = ({ user }) => {
           setBookmarkedStories(data.bookmarkedStories);
           setReadingHistory(data.readingHistory);
           setContinueReading(data.continueReading);
+          // Mock recommendations and top authors for now
+          setRecommendations(data.recommendations || []);
+          setTopAuthors(data.topAuthors || []);
         }
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
@@ -274,6 +279,116 @@ const UserDashboard = ({ user }) => {
               <p className="text-slate-600">No reading history yet</p>
             </div>
           )}
+        </div>
+
+        {/* Recommended Stories */}
+        <div className="mt-10 bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl p-8 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-32 h-32 bg-accent-600/5 rounded-full blur-2xl"></div>
+          <h2 className="text-2xl font-bold mb-6 flex items-center text-white">
+            <i className="fas fa-sparkles mr-3 text-accent-400"></i>Recommended For You
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {recommendations.length > 0 ? (
+              recommendations.slice(0, 4).map(story => (
+                <Link 
+                  key={story._id}
+                  to={`/story/${story._id}`}
+                  className="group bg-white/5 border border-white/10 rounded-2xl p-4 hover:border-accent-500/50 hover:bg-white/10 transition-all"
+                >
+                  <div className="bg-slate-800 rounded-lg h-40 flex items-center justify-center mb-4 overflow-hidden relative">
+                    <i className="fas fa-book text-4xl text-slate-700 group-hover:scale-110 transition-transform"></i>
+                  </div>
+                  <h3 className="font-bold text-white text-sm line-clamp-2 group-hover:text-accent-400 transition-colors">{story.title}</h3>
+                  <p className="text-xs text-slate-500 mt-2">{story.author?.name || 'Anonymous'}</p>
+                  <div className="flex items-center mt-3 pt-3 border-t border-white/5">
+                    <i className="fas fa-star text-yellow-500 text-xs mr-1"></i>
+                    <span className="text-xs text-slate-400">{story.rating || '4.5'}</span>
+                  </div>
+                </Link>
+              ))
+            ) : (
+              <div className="col-span-full text-center py-8 text-slate-500">
+                <i className="fas fa-lightbulb text-3xl mb-3 text-slate-700"></i>
+                <p>More recommendations coming soon!</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Top Authors to Follow */}
+        <div className="mt-10 bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl p-8 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-purple-600/5 rounded-full blur-2xl"></div>
+          <h2 className="text-2xl font-bold mb-6 flex items-center text-white">
+            <i className="fas fa-users mr-3 text-purple-400"></i>Authors You Might Like
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {topAuthors.length > 0 ? (
+              topAuthors.slice(0, 6).map(author => (
+                <div 
+                  key={author._id}
+                  className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 hover:border-purple-500/50 transition-all text-center"
+                >
+                  <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl font-bold text-white">
+                    {author.name?.charAt(0)}
+                  </div>
+                  <h3 className="font-bold text-white mb-1">{author.name}</h3>
+                  <p className="text-xs text-slate-500 mb-4">{author.storiesCount || 0} stories published</p>
+                  <button className="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors">
+                    Follow
+                  </button>
+                </div>
+              ))
+            ) : (
+              <div className="col-span-full text-center py-8 text-slate-500">
+                <i className="fas fa-search text-3xl mb-3 text-slate-700"></i>
+                <p>Start exploring authors you love!</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Reading Stats */}
+        <div className="mt-10 bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl p-8">
+          <h2 className="text-2xl font-bold mb-6 flex items-center text-white">
+            <i className="fas fa-chart-line mr-3 text-green-400"></i>Your Reading Stats
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-slate-400 text-sm font-medium">Average Rating Given</p>
+                <i className="fas fa-star text-yellow-500 text-xl"></i>
+              </div>
+              <p className="text-3xl font-bold text-white">{stats.avgRating || '4.2'}</p>
+              <p className="text-xs text-slate-500 mt-2">out of 5 stars</p>
+            </div>
+
+            <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-slate-400 text-sm font-medium">Longest Streak</p>
+                <i className="fas fa-fire text-orange-500 text-xl"></i>
+              </div>
+              <p className="text-3xl font-bold text-white">{stats.longestStreak || '7'}</p>
+              <p className="text-xs text-slate-500 mt-2">days in a row</p>
+            </div>
+
+            <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-slate-400 text-sm font-medium">Reading Level</p>
+                <i className="fas fa-medal text-purple-500 text-xl"></i>
+              </div>
+              <p className="text-3xl font-bold text-white">{stats.readingLevel || 'Pro'}</p>
+              <p className="text-xs text-slate-500 mt-2">Keep it up!</p>
+            </div>
+
+            <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-slate-400 text-sm font-medium">Words Read</p>
+                <i className="fas fa-book-open text-blue-500 text-xl"></i>
+              </div>
+              <p className="text-3xl font-bold text-white">{(stats.wordsRead / 1000).toFixed(1) || '0'}K</p>
+              <p className="text-xs text-slate-500 mt-2">total words</p>
+            </div>
+          </div>
         </div>
 
         {/* Quick Actions */}

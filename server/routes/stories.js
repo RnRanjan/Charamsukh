@@ -126,8 +126,8 @@ router.get('/:id', optionalAuth, async (req, res) => {
 
 // @route   POST /api/stories
 // @desc    Create a new story
-// @access  Private (Author/Admin)
-router.post('/', auth, authorize('author', 'admin'), storyUpload, [
+// @access  Private (Any authenticated user)
+router.post('/', auth, storyUpload, [
   body('title').trim().isLength({ min: 5, max: 200 }).withMessage('Title must be between 5 and 200 characters'),
   body('content').isLength({ min: 100 }).withMessage('Story must be at least 100 characters long'),
   body('category').notEmpty().withMessage('Category is required')
