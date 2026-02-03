@@ -1,4 +1,4 @@
-// API Configuration
+// API Configuration - Updated 2026-02-03
 const isDevelopment = typeof window !== 'undefined' && window.location.hostname === 'localhost';
 
 export const API_BASE_URL = isDevelopment
