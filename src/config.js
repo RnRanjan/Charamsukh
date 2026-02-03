@@ -1,7 +1,7 @@
 // API Configuration
 export const API_BASE_URL = 
   process.env.NODE_ENV === 'production' 
-    ? 'https://your-backend-api.com' // Replace with your deployed backend URL
+    ? 'https://charamsukh-api.onrender.com'
     : 'http://localhost:5000';
 
 export const API = {
